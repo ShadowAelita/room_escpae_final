@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import './index.css';
 
 const App = () => {
-  // States for adults, children, and KP
+  // States for adults, children, KP option (No KP, 1 hour, 2 hours)
   const [adults, setAdults] = useState(0);
   const [children, setChildren] = useState(0);
-  const [isKp, setIsKp] = useState(false);
+  const [kpOption, setKpOption] = useState("none"); // "none", "1hour", "2hours"
 
+  // Function to calculate the total price
   const calculatePrice = () => {
-    // Calculate base price based on adults and children
     let price = 0;
 
+    // Calculate base price based on adults and children
     if (adults <= 3) {
       price += adults * 20;
     } else {
@@ -22,9 +23,13 @@ const App = () => {
     // Apply minimum price of 40€
     if (price < 40) price = 40;
 
-    // Calculate KP pricing
-    if (adults + children >= 5 && isKp) {
-      price += adults * 5 + children * 4;
+    // Calculate KP pricing based on selection
+    if (adults + children >= 5) {
+      if (kpOption === "1hour") {
+        price += adults * 5 + children * 4; // 1 hour KP
+      } else if (kpOption === "2hours") {
+        price += (adults * 10 + children * 8); // 2 hours KP
+      }
     }
 
     return price;
@@ -56,14 +61,36 @@ const App = () => {
         </div>
 
         <div className="input-group">
-          <label>
-            Add KP (Optional, for 5 or more people):
-            <input
-              type="checkbox"
-              checked={isKp}
-              onChange={() => setIsKp(!isKp)}
-            />
-          </label>
+          <label>Choose KP Option:</label>
+          <div>
+            <label>
+              <input
+                type="radio"
+                value="none"
+                checked={kpOption === "none"}
+                onChange={() => setKpOption("none")}
+              />
+              No KP
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="1hour"
+                checked={kpOption === "1hour"}
+                onChange={() => setKpOption("1hour")}
+              />
+              1 Hour KP
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="2hours"
+                checked={kpOption === "2hours"}
+                onChange={() => setKpOption("2hours")}
+              />
+              2 Hours KP
+            </label>
+          </div>
         </div>
 
         <div className="result">
