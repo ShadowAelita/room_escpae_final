@@ -1,79 +1,77 @@
+import React, { useState } from 'react';
+import './index.css';
 
-import React, { useState } from "react";
-
-export default function EscapeRoomCalculator() {
+const App = () => {
+  // States for adults, children, and KP
   const [adults, setAdults] = useState(0);
   const [children, setChildren] = useState(0);
-  const [kpDuration, setKpDuration] = useState("none");
+  const [isKp, setIsKp] = useState(false);
 
-  const totalPeople = adults + children;
+  const calculatePrice = () => {
+    // Calculate base price based on adults and children
+    let price = 0;
 
-  const basePrice = (() => {
-    if (totalPeople < 2) return "-";
-    const adultRate = totalPeople <= 3 ? 20 : 15;
-    const price = adults * adultRate + children * 9;
-    return Math.max(price, 40);
-  })();
+    if (adults <= 3) {
+      price += adults * 20;
+    } else {
+      price += adults * 15;
+    }
 
-  const kpAvailable = totalPeople >= 5;
+    price += children * 9;
 
-  const kpPrice = (() => {
-    if (!kpAvailable || kpDuration === "none" || basePrice === "-") return 0;
-    const rate = kpDuration === "2h" ? 2 : 1;
-    return (adults * 5 + children * 4) * rate;
-  })();
+    // Apply minimum price of 40€
+    if (price < 40) price = 40;
 
-  const totalPrice = basePrice === "-" ? "-" : basePrice + kpPrice;
+    // Calculate KP pricing
+    if (adults + children >= 5 && isKp) {
+      price += adults * 5 + children * 4;
+    }
+
+    return price;
+  };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white shadow rounded-2xl space-y-4 text-center">
-      <h2 className="text-xl font-bold">Escape Room Price Calculator</h2>
+    <div className="container">
+      <h1>Escape Room Price Calculator</h1>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium">Adults</label>
+      <div className="inputs">
+        <div className="input-group">
+          <label>Adults:</label>
           <input
             type="number"
-            min="0"
             value={adults}
-            onChange={(e) => setAdults(Number(e.target.value))}
-            className="w-full mt-1 p-2 border rounded"
+            onChange={(e) => setAdults(parseInt(e.target.value))}
+            min="0"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium">Children</label>
+
+        <div className="input-group">
+          <label>Children:</label>
           <input
             type="number"
-            min="0"
             value={children}
-            onChange={(e) => setChildren(Number(e.target.value))}
-            className="w-full mt-1 p-2 border rounded"
+            onChange={(e) => setChildren(parseInt(e.target.value))}
+            min="0"
           />
         </div>
-      </div>
 
-      <div>
-        <label className="block text-sm font-medium">KP Duration</label>
-        <select
-          value={kpDuration}
-          onChange={(e) => setKpDuration(e.target.value)}
-          className="w-full mt-1 p-2 border rounded"
-        >
-          <option value="none">None</option>
-          <option value="1h" disabled={!kpAvailable}>1 hour</option>
-          <option value="2h" disabled={!kpAvailable}>2 hours</option>
-        </select>
-      </div>
+        <div className="input-group">
+          <label>
+            Add KP (Optional, for 5 or more people):
+            <input
+              type="checkbox"
+              checked={isKp}
+              onChange={() => setIsKp(!isKp)}
+            />
+          </label>
+        </div>
 
-      <div className="text-left text-sm space-y-1 mt-4">
-        <p><strong>Base Price:</strong> {basePrice === "-" ? "Not enough players" : `${basePrice}€`}</p>
-        <p><strong>KP Price:</strong> {kpPrice}€</p>
-        <p className="text-lg font-semibold"><strong>Total Price:</strong> {totalPrice === "-" ? "-" : `${totalPrice}€`}</p>
+        <div className="result">
+          <h3>Total Price: {calculatePrice()} €</h3>
+        </div>
       </div>
-
-      <p className="text-xs text-gray-500 mt-4">
-        * KP available only if 5 or more people. 5€/adult, 4€/child per hour.
-      </p>
     </div>
   );
-}
+};
+
+export default App;
