@@ -31,6 +31,13 @@ h1 {
   text-align: center;
 }
 
+.breakdown {
+  margin-top: 15px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+}
+
 
 .inputs {
   display: flex;
