@@ -47,6 +47,12 @@ const App = () => {
     return sum + calculateTeamPrice(adultCount, childrenPerTeam[i]);
   }, 0);
 
+  // Check if there's a team split edge case (where splitting adults and children differently would affect pricing)
+  const edgeCaseWarning = parsedTeams > 1 && (
+    (adultsPerTeam[0] >= 4 && childrenPerTeam[0] >= 4) || 
+    (adultsPerTeam[0] >= 3 && childrenPerTeam[0] >= 5)
+  );
+
   return (
     <div className="container">
       <h1>Escape Room Price Calculator</h1>
@@ -124,6 +130,12 @@ const App = () => {
         <div className="result">
           <h3>Total Price: {totalPrice} €</h3>
         </div>
+
+        {edgeCaseWarning && (
+          <div style={{ color: 'orange', fontWeight: 'bold', marginTop: '10px' }}>
+            <p>Warning: Teamaufteilung variiert Teampreis. Achten Sie auf die Teameinteilung, da dies den Preis beeinflussen könnte, insbesondere bei Teams mit mehr als 4 Erwachsenen und 4 Kindern.</p>
+          </div>
+        )}
 
         <button onClick={() => setShowBreakdown(!showBreakdown)} style={{ marginTop: '10px' }}>
           {showBreakdown ? 'Hide Breakdown' : 'Show Breakdown'}
