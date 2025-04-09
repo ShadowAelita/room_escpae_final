@@ -47,10 +47,9 @@ const App = () => {
     return sum + calculateTeamPrice(adultCount, childrenPerTeam[i]);
   }, 0);
 
-  // Check if there's a team split edge case (where splitting adults and children differently would affect pricing)
+  // Edge case detection: check if the team configuration could cause a price discrepancy
   const edgeCaseWarning = parsedTeams > 1 && (
-    (adultsPerTeam[0] >= 4 && childrenPerTeam[0] >= 4) || 
-    (adultsPerTeam[0] >= 3 && childrenPerTeam[0] >= 5)
+    (adultsPerTeam.some((adultsInTeam) => adultsInTeam >= 4) && childrenPerTeam.some((childrenInTeam) => childrenInTeam >= 4))
   );
 
   return (
