@@ -10,7 +10,7 @@ const App = () => {
   const handleReset = () => {
     setAdults('');
     setChildren('');
-    setTeams('');
+    setTeams(1);
     setKpOption('none');
   };
 
