@@ -58,6 +58,9 @@ const App = () => {
   return (
     <div className="container">
       <h1>Escape Room Price Calculator</h1>
+      <div className="warning">
+  Der Rechner kann Fehler machen, bei mehreren Teams auf Teamaufteilung achten!
+</div>
 
       <div className="inputs">
         <div className="input-group">
