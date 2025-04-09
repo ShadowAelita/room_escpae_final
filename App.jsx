@@ -2,30 +2,36 @@ import React, { useState } from 'react';
 import './index.css';
 
 const App = () => {
-  const [adults, setAdults] = useState();
-  const [children, setChildren] = useState();
-  const [kpOption, setKpOption] = useState("none"); // "none", "1hour", "2hours"
-  const [teams, setTeams] = useState(1);
+  const [adults, setAdults] = useState('');
+  const [children, setChildren] = useState('');
+  const [teams, setTeams] = useState('');
+  const [kpOption, setKpOption] = useState("none");
+
+  const handleReset = () => {
+    setAdults('');
+    setChildren('');
+    setTeams('');
+    setKpOption('none');
+  };
 
   const calculatePrice = () => {
+    const adultCount = parseInt(adults) || 0;
+    const childCount = parseInt(children) || 0;
+    const teamCount = Math.max(parseInt(teams) || 1, 1);
+
     let totalPrice = 0;
-    const totalPeople = adults + children;
-    const teamsCount = Math.max(parseInt(teams), 1);
+    const baseAdultsPerTeam = Math.floor(adultCount / teamCount);
+    const baseChildrenPerTeam = Math.floor(childCount / teamCount);
+    const remainderAdults = adultCount % teamCount;
+    const remainderChildren = childCount % teamCount;
 
-    const baseAdultsPerTeam = Math.floor(adults / teamsCount);
-    const baseChildrenPerTeam = Math.floor(children / teamsCount);
-    const remainderAdults = adults % teamsCount;
-    const remainderChildren = children % teamsCount;
-
-    for (let i = 0; i < teamsCount; i++) {
-      // Distribute remainder adults/children
+    for (let i = 0; i < teamCount; i++) {
       const adultsInTeam = baseAdultsPerTeam + (i < remainderAdults ? 1 : 0);
       const childrenInTeam = baseChildrenPerTeam + (i < remainderChildren ? 1 : 0);
       const teamSize = adultsInTeam + childrenInTeam;
 
       let teamPrice = 0;
 
-      // Base price per team
       if (teamSize <= 3) {
         teamPrice += adultsInTeam * 20;
       } else {
@@ -33,11 +39,8 @@ const App = () => {
       }
 
       teamPrice += childrenInTeam * 9;
-
-      // Minimum team price of 40€
       if (teamPrice < 40) teamPrice = 40;
 
-      // KP pricing
       if (teamSize >= 5) {
         if (kpOption === "1hour") {
           teamPrice += adultsInTeam * 5 + childrenInTeam * 4;
@@ -62,7 +65,7 @@ const App = () => {
           <input
             type="number"
             value={adults}
-            onChange={(e) => setAdults(parseInt(e.target.value) || 0)}
+            onChange={(e) => setAdults(e.target.value)}
             min="0"
           />
         </div>
@@ -72,7 +75,7 @@ const App = () => {
           <input
             type="number"
             value={children}
-            onChange={(e) => setChildren(parseInt(e.target.value) || 0)}
+            onChange={(e) => setChildren(e.target.value)}
             min="0"
           />
         </div>
@@ -82,7 +85,7 @@ const App = () => {
           <input
             type="number"
             value={teams}
-            onChange={(e) => setTeams(parseInt(e.target.value) || 1)}
+            onChange={(e) => setTeams(e.target.value)}
             min="1"
           />
         </div>
@@ -118,6 +121,12 @@ const App = () => {
               2 Hours KP
             </label>
           </div>
+        </div>
+
+        <div className="input-group">
+          <button onClick={handleReset} className="reset-button">
+            Reset
+          </button>
         </div>
 
         <div className="result">
