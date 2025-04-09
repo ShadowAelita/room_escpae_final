@@ -3,8 +3,8 @@ import './index.css';
 
 const App = () => {
   // States for adults, children, KP option (No KP, 1 hour, 2 hours)
-  const [adults, setAdults] = useState(0);
-  const [children, setChildren] = useState(0);
+  const [adults, setAdults] = useState();
+  const [children, setChildren] = useState();
   const [kpOption, setKpOption] = useState("none"); // "none", "1hour", "2hours"
 
   // Function to calculate the total price
