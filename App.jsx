@@ -4,7 +4,7 @@ import './index.css';
 const App = () => {
   const [adults, setAdults] = useState('');
   const [children, setChildren] = useState('');
-  const [teams, setTeams] = useState('');
+  const [teams, setTeams] = useState(1);
   const [kpOption, setKpOption] = useState("none");
 
   const handleReset = () => {
