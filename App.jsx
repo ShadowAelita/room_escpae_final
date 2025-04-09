@@ -12,7 +12,7 @@ const App = () => {
     let price = 0;
 
     // Calculate base price based on adults and children
-    if (adults <= 3) {
+    if (adults + children <= 3) {
       price += adults * 20;
     } else {
       price += adults * 15;
