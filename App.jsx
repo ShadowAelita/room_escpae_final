@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import './index.css';
 
 const App = () => {
-  const [adults, setAdults] = useState(0);
-  const [children, setChildren] = useState(0);
+  const [adults, setAdults] = useState();
+  const [children, setChildren] = useState();
   const [kpOption, setKpOption] = useState("none"); // "none", "1hour", "2hours"
   const [teams, setTeams] = useState(1);
 
