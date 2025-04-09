@@ -38,6 +38,19 @@ h1 {
   background-color: #f9f9f9;
 }
 
+.warning {
+  color: orange;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.warning {
+  color: orange;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+
 
 .inputs {
   display: flex;
