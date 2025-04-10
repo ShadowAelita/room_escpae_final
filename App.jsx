@@ -81,12 +81,14 @@ const App = () => {
       // Try all possible ways to assign adults and children to the current team
       for (let adultsInTeam = 0; adultsInTeam <= adultsLeft; adultsInTeam++) {
         for (let childrenInTeam = 0; childrenInTeam <= childrenLeft; childrenInTeam++) {
-          distributePeople(
-            adultsLeft - adultsInTeam,
-            childrenLeft - childrenInTeam,
-            teamsRemaining - 1,
-            [...currentDistribution, [adultsInTeam, childrenInTeam]]
-          );
+          if (adultsInTeam + childrenInTeam >= 3) {  // Make sure every team has at least 3 people
+            distributePeople(
+              adultsLeft - adultsInTeam,
+              childrenLeft - childrenInTeam,
+              teamsRemaining - 1,
+              [...currentDistribution, [adultsInTeam, childrenInTeam]]
+            );
+          }
         }
       }
     };
