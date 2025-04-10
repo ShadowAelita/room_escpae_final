@@ -180,7 +180,7 @@ const App = () => {
         </div>
 
         <div className="result">
-          <h3>Total Price: {minPrice} € (Min) / {maxPrice} € (Max)</h3>
+          <h3>Total Price: {minPrice} € (Min) {parsedTeams > 1 && ` / ${maxPrice} € (Max)`}</h3>
         </div>
 
         <div>
@@ -193,14 +193,16 @@ const App = () => {
               ))}
             </ul>
           </div>
-          <div>
-            <strong>Max Price Breakdown:</strong>
-            <ul>
-              {maxPriceDistribution && maxPriceDistribution.map((line, index) => (
-                <li key={index}>{line}</li>
-              ))}
-            </ul>
-          </div>
+          {parsedTeams > 1 && (
+            <div>
+              <strong>Max Price Breakdown:</strong>
+              <ul>
+                {maxPriceDistribution && maxPriceDistribution.map((line, index) => (
+                  <li key={index}>{line}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         <button
