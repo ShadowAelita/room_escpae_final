@@ -55,7 +55,7 @@ const App = () => {
   const edgeCaseWarning = parsedTeams >= 2 &&
                           (parsedAdults + parsedChildren) >= 7 &&
                           parsedAdults >= 1 && parsedChildren >= 1 &&
-                          calculateTeamPrice(0, parsedChildren) < 40;
+                          calculateTeamPrice(0, parsedChildren) > 40;
 
   return (
     <div className="container">
