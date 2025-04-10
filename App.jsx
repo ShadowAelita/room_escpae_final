@@ -43,7 +43,7 @@ const App = () => {
     return teamPrice;
   };
 
-  // Calculate the min and max price for the teams
+  // Calculate min and max price for the teams
   const calculateMinMaxPrice = () => {
     const minBreakdown = [];
     const maxBreakdown = [];
@@ -91,10 +91,6 @@ const App = () => {
   };
 
   const { minPrice, maxPrice, minBreakdown, maxBreakdown } = calculateMinMaxPrice();
-
-  // Log for debugging
-  console.log('Min Price Breakdown:', minBreakdown);
-  console.log('Max Price Breakdown:', maxBreakdown);
 
   return (
     <div className="container">
