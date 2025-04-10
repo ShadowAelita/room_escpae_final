@@ -41,7 +41,7 @@ const App = () => {
     let minPrice = 0;
     let minPriceDistribution = [];
 
-    // Split people evenly into two teams
+    // Split people evenly into teams
     const teamSize = Math.floor(totalPeople / parsedTeams);
     let remainingPeople = totalPeople - teamSize * parsedTeams;
 
@@ -52,11 +52,28 @@ const App = () => {
     }
 
     // Calculate the minimum price based on team distribution
+    let adultsLeft = parsedAdults;
+    let childrenLeft = parsedChildren;
+
     for (let i = 0; i < parsedTeams; i++) {
-      const adultsInTeam = Math.min(teamDistribution[i], parsedAdults);
-      const childrenInTeam = teamDistribution[i] - adultsInTeam;
+      const adultsInTeam = Math.min(teamDistribution[i], adultsLeft);
+      const childrenInTeam = Math.min(teamDistribution[i] - adultsInTeam, childrenLeft);
+      
+      // Ensure each team has at least 1 adult and 1 child if possible
+      if (adultsInTeam === 0 && adultsLeft > 0) {
+        adultsInTeam = 1;
+        childrenInTeam = teamDistribution[i] - adultsInTeam;
+      }
+      
+      if (childrenInTeam === 0 && childrenLeft > 0) {
+        childrenInTeam = 1;
+        adultsInTeam = teamDistribution[i] - childrenInTeam;
+      }
+
       minPriceDistribution.push([adultsInTeam, childrenInTeam]);
       minPrice += calculateTeamPrice(adultsInTeam, childrenInTeam);
+      adultsLeft -= adultsInTeam;
+      childrenLeft -= childrenInTeam;
     }
 
     return { minPrice, minPriceDistribution };
@@ -68,7 +85,7 @@ const App = () => {
     let maxPrice = 0;
     let maxPriceDistribution = [];
 
-    // Distribute the children to one team to create one underpriced team
+    // Split people evenly into teams
     const teamSize = Math.floor(totalPeople / parsedTeams);
     let remainingPeople = totalPeople - teamSize * parsedTeams;
 
@@ -79,6 +96,9 @@ const App = () => {
     }
 
     // Calculate the maximum price based on team distribution
+    let adultsLeft = parsedAdults;
+    let childrenLeft = parsedChildren;
+
     for (let i = 0; i < parsedTeams; i++) {
       let adultsInTeam = 0;
       let childrenInTeam = 0;
@@ -96,6 +116,8 @@ const App = () => {
 
       maxPriceDistribution.push([adultsInTeam, childrenInTeam]);
       maxPrice += calculateTeamPrice(adultsInTeam, childrenInTeam);
+      adultsLeft -= adultsInTeam;
+      childrenLeft -= childrenInTeam;
     }
 
     return { maxPrice, maxPriceDistribution };
