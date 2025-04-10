@@ -12,20 +12,22 @@ const App = () => {
   const parsedChildren = parseInt(children) || 0;
   const parsedTeams = Math.max(parseInt(teams) || 1, 1);
 
+  // Split people into teams
   const splitIntoTeams = (total, teams) => {
     const base = Math.floor(total / teams);
     const remainder = total % teams;
     return Array.from({ length: teams }, (_, i) => base + (i < remainder ? 1 : 0));
   };
 
+  // Split adults and children into teams
   const adultsPerTeam = splitIntoTeams(parsedAdults, parsedTeams);
   const childrenPerTeam = splitIntoTeams(parsedChildren, parsedTeams);
 
+  // Calculate the price for each team
   const calculateTeamPrice = (adults, children) => {
     let teamPrice = 0;
-    const totalPeople = adults + children;
 
-    if (totalPeople <= 3) {
+    if (adults + children <= 3) {
       teamPrice += adults * 20;
     } else {
       teamPrice += adults * 15;
@@ -36,9 +38,9 @@ const App = () => {
 
     if (parsedAdults + parsedChildren >= 5) {
       if (kpOption === "1hour") {
-        teamPrice += adults * 5 + children * 4;
+        teamPrice += adults * 5 + children * 4; // 1 hour KP
       } else if (kpOption === "2hours") {
-        teamPrice += adults * 10 + children * 8;
+        teamPrice += adults * 10 + children * 8; // 2 hours KP
       }
     }
 
@@ -49,49 +51,40 @@ const App = () => {
     return sum + calculateTeamPrice(adultCount, childrenPerTeam[i]);
   }, 0);
 
-  // ----- Accurate Edge Case Detection -----
-  const generateSplits = (total, teams) => {
-    if (teams === 1) return [[total]];
-    const results = [];
-    for (let i = 0; i <= total; i++) {
-      const subSplits = generateSplits(total - i, teams - 1);
-      subSplits.forEach(sub => results.push([i, ...sub]));
+  // Check if the price changes due to team composition
+  const checkEdgeCaseWarning = () => {
+    if (parsedTeams > 1) {
+      let warningTriggered = false;
+
+      // Check all teams
+      for (let i = 0; i < parsedTeams; i++) {
+        const adultCountInTeam = adultsPerTeam[i];
+        const childrenCountInTeam = childrenPerTeam[i];
+
+        let teamPrice = 0;
+
+        if (adultCountInTeam + childrenCountInTeam <= 3) {
+          teamPrice += adultCountInTeam * 20;
+        } else {
+          teamPrice += adultCountInTeam * 15;
+        }
+
+        teamPrice += childrenCountInTeam * 9;
+        if (teamPrice < 40) teamPrice = 40;
+
+        // Check if the team price would be different if the distribution was different
+        if (teamPrice !== calculateTeamPrice(adultCountInTeam, childrenCountInTeam)) {
+          warningTriggered = true;
+          break;
+        }
+      }
+
+      return warningTriggered;
     }
-    return results;
+    return false;
   };
 
-  const getAllDistributions = (adults, children, teams) => {
-    const adultSplits = generateSplits(adults, teams);
-    const childSplits = generateSplits(children, teams);
-    const distributions = [];
-
-    adultSplits.forEach(ad => {
-      childSplits.forEach(ch => {
-        distributions.push(ad.map((a, i) => ({ adults: a, children: ch[i] })));
-      });
-    });
-
-    return distributions;
-  };
-
-  const uniquePrices = new Set();
-  if (parsedTeams > 1 && (parsedAdults + parsedChildren) > 0) {
-    const allConfigs = getAllDistributions(parsedAdults, parsedChildren, parsedTeams);
-    allConfigs.forEach(config => {
-      const price = config.reduce((sum, team) => sum + calculateTeamPrice(team.adults, team.children), 0);
-      uniquePrices.add(price);
-    });
-  }
-
-const edgeCaseWarning = parsedTeams > 1 && (
-  adultsPerTeam.some((adultCount, i) => {
-    const childCount = childrenPerTeam[i];
-    const price = calculateTeamPrice(adultCount, childCount);
-    return price !== calculateTeamPrice(adultCount, childCount);  // If the price is different across teams
-  })
-);
-
-
+  const edgeCaseWarning = checkEdgeCaseWarning();
 
   return (
     <div className="container">
@@ -173,7 +166,7 @@ const edgeCaseWarning = parsedTeams > 1 && (
 
         {edgeCaseWarning && (
           <div style={{ color: 'orange', fontWeight: 'bold', marginTop: '10px' }}>
-            <p>⚠️ Achtung: Verschiedene Aufteilungen können unterschiedliche Preise ergeben.⚠️</p>
+            <p>Warning: Teamaufteilung variiert Teampreis. Achten Sie auf die Teameinteilung, da dies den Preis beeinflussen könnte, insbesondere bei Teams mit mehr als 4 Erwachsenen und 4 Kindern.</p>
           </div>
         )}
 
