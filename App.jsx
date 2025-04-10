@@ -23,6 +23,7 @@ const App = () => {
 
   const calculateTeamPrice = (adults, children) => {
     let teamPrice = 0;
+
     if (adults + children <= 3) {
       teamPrice += adults * 20;
     } else {
@@ -47,16 +48,16 @@ const App = () => {
     return sum + calculateTeamPrice(adultCount, childrenPerTeam[i]);
   }, 0);
 
-  // Edge case detection: check if the team configuration could cause a price discrepancy
-  const edgeCaseWarning = parsedTeams > 1 && (
-    (adultsPerTeam.some((adultsInTeam) <= adultsInTeam <= 4) && childrenPerTeam.some((childrenInTeam) <= childrenInTeam <= 4))
-  );
+  // Edge case warning logic
+  const edgeCaseWarning = parsedTeams > 1 &&
+    adultsPerTeam.some(adults => adults >= 4) &&
+    childrenPerTeam.some(children => children >= 4);
 
   return (
     <div className="container">
       <h1>Escape Room Price Calculator</h1>
 
-      <p style={{ color: 'red', fontWeight: 'bold' }}>
+      <p className="disclaimer">
         Der Rechner kann Fehler machen, bei mehreren Teams auf Teamaufteilung achten!
       </p>
 
@@ -131,8 +132,8 @@ const App = () => {
         </div>
 
         {edgeCaseWarning && (
-          <div style={{ color: 'orange', fontWeight: 'bold', marginTop: '10px' }}>
-            <p>Warning: Teamaufteilung variiert Teampreis. Achten Sie auf die Teameinteilung, da dies den Preis beeinflussen könnte, insbesondere bei Teams mit mehr als 4 Erwachsenen und 4 Kindern.</p>
+          <div className="warning">
+            ⚠️ Hinweis: Teamaufteilung variiert Teampreis. Die Verteilung von Erwachsenen und Kindern kann sich auf den Preis auswirken.
           </div>
         )}
 
