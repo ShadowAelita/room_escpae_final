@@ -83,12 +83,14 @@ const App = () => {
     });
   }
 
-  // Edge case detection: Check if any team is below the minimum price or if the pricing changes
-const edgeCaseWarning = parsedTeams > 1 && adultsPerTeam.some((adultsInTeam, i) => {
-  const childrenInTeam = childrenPerTeam[i];
-  const teamPrice = calculateTeamPrice(adultsInTeam, childrenInTeam);
-  return teamPrice !== calculateTeamPrice(adultsPerTeam[0], childrenPerTeam[0]);
-});
+const edgeCaseWarning = parsedTeams > 1 && (
+  adultsPerTeam.some((adultCount, i) => {
+    const childCount = childrenPerTeam[i];
+    const price = calculateTeamPrice(adultCount, childCount);
+    return price !== calculateTeamPrice(adultCount, childCount);  // If the price is different across teams
+  })
+);
+
 
 
   return (
