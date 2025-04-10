@@ -49,7 +49,7 @@ const App = () => {
 
   // Edge case detection: check if the team configuration could cause a price discrepancy
   const edgeCaseWarning = parsedTeams > 1 && (
-    (adultsPerTeam.some((adultsInTeam) <= adultsInTeam <= 3) && childrenPerTeam.some((childrenInTeam) <= childrenInTeam <= 3))
+    (adultsPerTeam.some((adultsInTeam) <= adultsInTeam <= 4) && childrenPerTeam.some((childrenInTeam) <= childrenInTeam <= 4))
   );
 
   return (
