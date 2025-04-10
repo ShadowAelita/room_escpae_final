@@ -51,17 +51,16 @@ const App = () => {
     return sum + calculateTeamPrice(adultCount, childrenPerTeam[i]);
   }, 0);
 
- const edgeCaseWarning =
-  parsedTeams > 1 &&
-  (parsedAdults + parsedChildren >= 7) &&
-  (parsedAdults > 0 && parsedChildren > 0) &&
-  (adultsPerTeam.some((adultsInTeam, i) => {
-    const childrenInTeam = childrenPerTeam[i];
-    const teamPrice = calculateTeamPrice(adultsInTeam, childrenInTeam);
-    return teamPrice < 40;
-  }));
-
-
+  // Edge case warning check
+  const edgeCaseWarning =
+    parsedTeams > 1 &&
+    (parsedAdults + parsedChildren >= 7) &&
+    (parsedAdults > 0 && parsedChildren > 0) &&
+    adultsPerTeam.some((adultsInTeam, i) => {
+      const childrenInTeam = childrenPerTeam[i];
+      const teamPrice = calculateTeamPrice(adultsInTeam, childrenInTeam);
+      return teamPrice < 40;
+    });
 
   return (
     <div className="container">
