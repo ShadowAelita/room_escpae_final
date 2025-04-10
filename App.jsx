@@ -50,8 +50,8 @@ const App = () => {
 
   // Edge case warning logic
   const edgeCaseWarning = parsedTeams > 1 &&
-    adultsPerTeam.some(adults => adults >= 4) &&
-    childrenPerTeam.some(children => children >= 4);
+    adultsPerTeam.some(adults =< adults <= 4) &&
+    childrenPerTeam.some(children =< children <= 4);
 
   return (
     <div className="container">
