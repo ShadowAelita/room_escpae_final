@@ -23,7 +23,7 @@ h1 {
   margin-bottom: 20px;
 }
 
-.warning {
+.disclaimer {
   color: red;
   font-weight: bold;
   font-size: 1.2em;
@@ -31,26 +31,11 @@ h1 {
   text-align: center;
 }
 
-.breakdown {
-  margin-top: 15px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  background-color: #f9f9f9;
-}
-
 .warning {
   color: orange;
   font-weight: bold;
   margin-top: 10px;
 }
-
-.warning {
-  color: orange;
-  font-weight: bold;
-  margin-top: 10px;
-}
-
-
 
 .inputs {
   display: flex;
@@ -83,4 +68,11 @@ input[type="radio"] {
   font-size: 18px;
   font-weight: bold;
   color: #333;
+}
+
+.breakdown {
+  margin-top: 15px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
 }
