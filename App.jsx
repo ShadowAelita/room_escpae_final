@@ -43,20 +43,58 @@ const App = () => {
     return teamPrice;
   };
 
-  // Temporary minimal price and max price calculation just for showing breakdown
+  // Calculate the min and max price for the teams
   const calculateMinMaxPrice = () => {
-    // Default to 0 for now to test functionality
+    const minBreakdown = [];
+    const maxBreakdown = [];
+
+    // Distribute adults and children to teams
+    const adultsPerTeam = splitIntoTeams(parsedAdults, parsedTeams);
+    const childrenPerTeam = splitIntoTeams(parsedChildren, parsedTeams);
+
+    // For min price, distribute people as evenly as possible, no team below 40€
+    let minPrice = 0;
+    adultsPerTeam.forEach((adultCount, i) => {
+      const childCount = childrenPerTeam[i];
+      let teamPrice = calculateTeamPrice(adultCount, childCount);
+      minPrice += teamPrice;
+      minBreakdown.push({
+        adults: adultCount,
+        children: childCount,
+        price: teamPrice
+      });
+    });
+
+    // For max price, create teams with higher prices by separating children and adults
+    let maxPrice = 0;
+    const maxAdultsPerTeam = splitIntoTeams(parsedAdults, parsedTeams);
+    const maxChildrenPerTeam = splitIntoTeams(parsedChildren, parsedTeams);
+
+    maxAdultsPerTeam.forEach((adultCount, i) => {
+      const childCount = maxChildrenPerTeam[i];
+      let teamPrice = calculateTeamPrice(adultCount, childCount);
+      maxPrice += teamPrice;
+      maxBreakdown.push({
+        adults: adultCount,
+        children: childCount,
+        price: teamPrice
+      });
+    });
+
+    // Return both min and max prices and the breakdowns
     return {
-      minPrice: 40 * parsedTeams, // Assuming each team has a minimum price of 40€
-      maxPrice: 60 * parsedTeams, // Just some basic logic for max price
-      breakdown: []
+      minPrice,
+      maxPrice,
+      minBreakdown,
+      maxBreakdown
     };
   };
 
-  const { minPrice, maxPrice, breakdown } = calculateMinMaxPrice();
+  const { minPrice, maxPrice, minBreakdown, maxBreakdown } = calculateMinMaxPrice();
 
   // Log for debugging
-  console.log('Breakdown:', breakdown);
+  console.log('Min Price Breakdown:', minBreakdown);
+  console.log('Max Price Breakdown:', maxBreakdown);
 
   return (
     <div className="container">
@@ -140,17 +178,20 @@ const App = () => {
           <div className="breakdown">
             <h4>Price Breakdown:</h4>
             <h5>Min Price Breakdown:</h5>
-            {breakdown.map((team, i) => (
+            {minBreakdown.map((team, i) => (
               <div key={i}>
                 <strong>Team {i + 1}:</strong> {team.adults} Adults, {team.children} Children → {team.price} €
               </div>
             ))}
+            <h5>Total Min Price: {minPrice} €</h5>
+
             <h5>Max Price Breakdown:</h5>
-            {breakdown.map((team, i) => (
+            {maxBreakdown.map((team, i) => (
               <div key={i}>
                 <strong>Team {i + 1}:</strong> {team.adults} Adults, {team.children} Children → {team.price} €
               </div>
             ))}
+            <h5>Total Max Price: {maxPrice} €</h5>
           </div>
         )}
 
