@@ -83,7 +83,13 @@ const App = () => {
     });
   }
 
-  const edgeCaseWarning = uniquePrices.size > 1;
+  // Edge case detection: Check if any team is below the minimum price or if the pricing changes
+const edgeCaseWarning = parsedTeams > 1 && adultsPerTeam.some((adultsInTeam, i) => {
+  const childrenInTeam = childrenPerTeam[i];
+  const teamPrice = calculateTeamPrice(adultsInTeam, childrenInTeam);
+  return teamPrice !== calculateTeamPrice(adultsPerTeam[0], childrenPerTeam[0]);
+});
+
 
   return (
     <div className="container">
@@ -165,7 +171,7 @@ const App = () => {
 
         {edgeCaseWarning && (
           <div style={{ color: 'orange', fontWeight: 'bold', marginTop: '10px' }}>
-            <p>⚠️ Warning: Teamaufteilung variiert Teampreis. Verschiedene Aufteilungen können unterschiedliche Preise ergeben.</p>
+            <p>⚠️ Achtung: Verschiedene Aufteilungen können unterschiedliche Preise ergeben.⚠️</p>
           </div>
         )}
 
