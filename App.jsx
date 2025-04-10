@@ -6,6 +6,7 @@ const App = () => {
   const [children, setChildren] = useState('');
   const [kpOption, setKpOption] = useState("none");
   const [teams, setTeams] = useState('1');
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
   const parsedAdults = parseInt(adults) || 0;
   const parsedChildren = parseInt(children) || 0;
@@ -35,101 +36,28 @@ const App = () => {
     return teamPrice;
   };
 
-  // Function to calculate the minimum price
-  const calculateMinPrice = () => {
-    const totalPeople = parsedAdults + parsedChildren;
-    let minPrice = 0;
-    let minPriceDistribution = [];
-
-    // Split people evenly into teams
-    const teamSize = Math.floor(totalPeople / parsedTeams);
-    let remainingPeople = totalPeople - teamSize * parsedTeams;
-
-    // Ensure each team gets at least 3 people
-    let teamDistribution = Array(parsedTeams).fill(teamSize);
-    for (let i = 0; i < remainingPeople; i++) {
-      teamDistribution[i]++;
-    }
-
-    // Calculate the minimum price based on team distribution
-    let adultsLeft = parsedAdults;
-    let childrenLeft = parsedChildren;
-
-    for (let i = 0; i < parsedTeams; i++) {
-      const adultsInTeam = Math.min(teamDistribution[i], adultsLeft);
-      const childrenInTeam = Math.min(teamDistribution[i] - adultsInTeam, childrenLeft);
-      
-      // Ensure each team has at least 1 adult and 1 child if possible
-      if (adultsInTeam === 0 && adultsLeft > 0) {
-        adultsInTeam = 1;
-        childrenInTeam = teamDistribution[i] - adultsInTeam;
-      }
-      
-      if (childrenInTeam === 0 && childrenLeft > 0) {
-        childrenInTeam = 1;
-        adultsInTeam = teamDistribution[i] - childrenInTeam;
-      }
-
-      minPriceDistribution.push([adultsInTeam, childrenInTeam]);
-      minPrice += calculateTeamPrice(adultsInTeam, childrenInTeam);
-      adultsLeft -= adultsInTeam;
-      childrenLeft -= childrenInTeam;
-    }
-
-    return { minPrice, minPriceDistribution };
+  // Function to split people into teams
+  const splitIntoTeams = (total, teams) => {
+    const base = Math.floor(total / teams);
+    const remainder = total % teams;
+    return Array.from({ length: teams }, (_, i) => base + (i < remainder ? 1 : 0));
   };
 
-  // Function to calculate the maximum price
-  const calculateMaxPrice = () => {
-    const totalPeople = parsedAdults + parsedChildren;
-    let maxPrice = 0;
-    let maxPriceDistribution = [];
+  // Split adults and children into teams
+  const adultsPerTeam = splitIntoTeams(parsedAdults, parsedTeams);
+  const childrenPerTeam = splitIntoTeams(parsedChildren, parsedTeams);
 
-    // Split people evenly into teams
-    const teamSize = Math.floor(totalPeople / parsedTeams);
-    let remainingPeople = totalPeople - teamSize * parsedTeams;
-
-    // Ensure each team gets at least 3 people
-    let teamDistribution = Array(parsedTeams).fill(teamSize);
-    for (let i = 0; i < remainingPeople; i++) {
-      teamDistribution[i]++;
-    }
-
-    // Calculate the maximum price based on team distribution
-    let adultsLeft = parsedAdults;
-    let childrenLeft = parsedChildren;
-
-    for (let i = 0; i < parsedTeams; i++) {
-      let adultsInTeam = 0;
-      let childrenInTeam = 0;
-
-      if (i === 0) {
-        // Team 1 will have as many children as possible, and minimum adults
-        childrenInTeam = Math.min(parsedChildren, teamDistribution[i]);
-        childrenInTeam = Math.max(childrenInTeam, 3); // Ensure at least 3 people
-        adultsInTeam = Math.max(teamDistribution[i] - childrenInTeam, 0);
-      } else {
-        // Team 2 gets the remaining people
-        childrenInTeam = Math.max(teamDistribution[i] - parsedAdults, 0);
-        adultsInTeam = teamDistribution[i] - childrenInTeam;
-      }
-
-      maxPriceDistribution.push([adultsInTeam, childrenInTeam]);
-      maxPrice += calculateTeamPrice(adultsInTeam, childrenInTeam);
-      adultsLeft -= adultsInTeam;
-      childrenLeft -= childrenInTeam;
-    }
-
-    return { maxPrice, maxPriceDistribution };
-  };
-
-  // Calculate minimum and maximum prices
-  const { minPrice, minPriceDistribution } = calculateMinPrice();
-  const { maxPrice, maxPriceDistribution } = calculateMaxPrice();
+  const totalPrice = adultsPerTeam.reduce((sum, adultCount, i) => {
+    return sum + calculateTeamPrice(adultCount, childrenPerTeam[i]);
+  }, 0);
 
   return (
     <div className="container">
       <h1>Escape Room Price Calculator</h1>
+
+      <p style={{ color: 'red', fontWeight: 'bold' }}>
+        Der Rechner kann Fehler machen, bei mehreren Teams auf Teamaufteilung achten!
+      </p>
 
       <div className="inputs">
         <div className="input-group">
@@ -164,27 +92,74 @@ const App = () => {
           />
         </div>
 
+        <div className="input-group">
+          <label>Choose KP Option:</label>
+          <div>
+            <label>
+              <input
+                type="radio"
+                value="none"
+                checked={kpOption === "none"}
+                onChange={() => setKpOption("none")}
+              />
+              No KP
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="1hour"
+                checked={kpOption === "1hour"}
+                onChange={() => setKpOption("1hour")}
+              />
+              1 Hour KP
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="2hours"
+                checked={kpOption === "2hours"}
+                onChange={() => setKpOption("2hours")}
+              />
+              2 Hours KP
+            </label>
+          </div>
+        </div>
+
         <div className="result">
-          <h3>Total Price: {minPrice} € (Min) / {maxPrice} € (Max)</h3>
+          <h3>Total Price: {totalPrice} €</h3>
         </div>
 
-        <div>
-          <strong>Min Price Breakdown:</strong>
-          <ul>
-            {minPriceDistribution.map((line, index) => (
-              <li key={index}>Team {index + 1}: Adults = {line[0]}, Children = {line[1]}, Price = {calculateTeamPrice(line[0], line[1])} €</li>
-            ))}
-          </ul>
-        </div>
+        {showBreakdown && (
+          <div className="breakdown">
+            <h4>Team Breakdown:</h4>
+            {adultsPerTeam.map((adultCount, i) => {
+              const childCount = childrenPerTeam[i];
+              const price = calculateTeamPrice(adultCount, childCount);
+              return (
+                <div key={i}>
+                  <strong>Team {i + 1}:</strong> {adultCount} Adults, {childCount} Children → {price} €
+                </div>
+              );
+            })}
+          </div>
+        )}
 
-        <div>
-          <strong>Max Price Breakdown:</strong>
-          <ul>
-            {maxPriceDistribution.map((line, index) => (
-              <li key={index}>Team {index + 1}: Adults = {line[0]}, Children = {line[1]}, Price = {calculateTeamPrice(line[0], line[1])} €</li>
-            ))}
-          </ul>
-        </div>
+        <button onClick={() => setShowBreakdown(!showBreakdown)} style={{ marginTop: '10px' }}>
+          {showBreakdown ? 'Hide Breakdown' : 'Show Breakdown'}
+        </button>
+
+        <button
+          onClick={() => {
+            setAdults('');
+            setChildren('');
+            setTeams('1');
+            setKpOption('none');
+            setShowBreakdown(false);
+          }}
+          style={{ marginTop: '20px' }}
+        >
+          Reset
+        </button>
       </div>
     </div>
   );
