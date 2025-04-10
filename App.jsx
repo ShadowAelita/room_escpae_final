@@ -191,7 +191,10 @@ const App = () => {
           <h3>Total Price: {minPrice} € (Min) / {maxPrice} € (Max)</h3>
         </div>
 
-        <button onClick={() => setShowBreakdown(!showBreakdown)} style={{ marginTop: '10px' }}>
+        <button 
+          onClick={() => setShowBreakdown(!showBreakdown)} 
+          style={{ marginTop: '10px', display: 'inline-block', padding: '10px', backgroundColor: '#3498db', color: 'white', border: 'none', cursor: 'pointer' }}
+        >
           {showBreakdown ? 'Hide Breakdown' : 'Show Breakdown'}
         </button>
 
