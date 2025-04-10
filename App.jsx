@@ -6,17 +6,45 @@ const App = () => {
   const [children, setChildren] = useState('');
   const [kpOption, setKpOption] = useState("none");
   const [teams, setTeams] = useState('1');
-  const [showBreakdown, setShowBreakdown] = useState(false);
+  const [showBreakdown, setShowBreakdown] = useState(false); // State to toggle the breakdown
 
   const parsedAdults = parseInt(adults) || 0;
   const parsedChildren = parseInt(children) || 0;
   const parsedTeams = Math.max(parseInt(teams) || 1, 1);
 
-  // Split adults and children into teams
-  const splitIntoTeams = (total, teams) => {
-    const base = Math.floor(total / teams);
-    const remainder = total % teams;
-    return Array.from({ length: teams }, (_, i) => base + (i < remainder ? 1 : 0));
+  // Split adults and children into teams with at least 3 people in each team
+  const distributePeopleIntoTeams = (adultsLeft, childrenLeft, teamsRemaining) => {
+    let distribution = [];
+    let totalPeople = adultsLeft + childrenLeft;
+
+    // Each team needs at least 3 people
+    let peoplePerTeam = Math.floor(totalPeople / teamsRemaining);
+    let remainder = totalPeople % teamsRemaining;
+
+    // Distribute people across teams
+    for (let i = 0; i < teamsRemaining; i++) {
+      let adultsInTeam = 0;
+      let childrenInTeam = peoplePerTeam;
+
+      // If there are more people left to distribute, add 1 more person to this team
+      if (remainder > 0) {
+        childrenInTeam += 1;
+        remainder--;
+      }
+
+      // Place as many adults as we can in the team (if possible)
+      if (adultsLeft > 0 && childrenInTeam < 3) {
+        let adultsToAdd = Math.min(adultsLeft, 3 - childrenInTeam);
+        adultsInTeam += adultsToAdd;
+        childrenInTeam = 3 - adultsInTeam;
+      }
+
+      // Adjust the distribution for adults and children
+      adultsLeft -= adultsInTeam;
+      childrenLeft -= childrenInTeam;
+      distribution.push([adultsInTeam, childrenInTeam]);
+    }
+    return distribution;
   };
 
   // Calculate the price for each team
@@ -43,69 +71,47 @@ const App = () => {
     return teamPrice;
   };
 
-  // Generate all possible distributions and calculate their corresponding prices
+  // Generate min and max price distributions
   const generatePossibleDistributions = () => {
     let minPrice = Infinity;
     let maxPrice = -Infinity;
     let minPriceDistribution = null;
     let maxPriceDistribution = null;
 
-    // Loop over all possible distributions of adults and children across teams
-    const distributions = [];
+    // Find the min and max price for valid distributions
+    const distributions = distributePeopleIntoTeams(parsedAdults, parsedChildren, parsedTeams);
+    let totalMinPrice = 0;
+    let totalMaxPrice = 0;
+    let minPriceBreakdown = [];
+    let maxPriceBreakdown = [];
 
-    // Get all combinations of adults and children for each team
-    const distributePeople = (adultsLeft, childrenLeft, teamsRemaining, currentDistribution = []) => {
-      if (teamsRemaining === 0) {
-        // Base case: calculate the price for this distribution
-        let totalPrice = 0;
-        let breakdown = [];
-        for (let i = 0; i < currentDistribution.length; i++) {
-          const [adultsInTeam, childrenInTeam] = currentDistribution[i];
-          const price = calculateTeamPrice(adultsInTeam, childrenInTeam);
-          totalPrice += price;
-          breakdown.push(`Team ${i + 1}: Adults = ${adultsInTeam}, Children = ${childrenInTeam}, Price = ${price} €`);
-        }
+    // Calculate min price (min adults in each team)
+    for (let i = 0; i < distributions.length; i++) {
+      const [adultsInTeam, childrenInTeam] = distributions[i];
+      const minPriceForTeam = calculateTeamPrice(adultsInTeam, childrenInTeam);
+      totalMinPrice += minPriceForTeam;
+      minPriceBreakdown.push(`Team ${i + 1}: Adults = ${adultsInTeam}, Children = ${childrenInTeam}, Price = ${minPriceForTeam} €`);
+    }
 
-        // Update min/max price
-        if (totalPrice < minPrice) {
-          minPrice = totalPrice;
-          minPriceDistribution = breakdown;
-        }
-        if (totalPrice > maxPrice) {
-          maxPrice = totalPrice;
-          maxPriceDistribution = breakdown;
-        }
-        return;
-      }
-
-      // Try all possible ways to assign adults and children to the current team
-      for (let adultsInTeam = 0; adultsInTeam <= adultsLeft; adultsInTeam++) {
-        for (let childrenInTeam = 0; childrenInTeam <= childrenLeft; childrenInTeam++) {
-          if (adultsInTeam + childrenInTeam >= 3) {  // Make sure every team has at least 3 people
-            distributePeople(
-              adultsLeft - adultsInTeam,
-              childrenLeft - childrenInTeam,
-              teamsRemaining - 1,
-              [...currentDistribution, [adultsInTeam, childrenInTeam]]
-            );
-          }
-        }
-      }
-    };
-
-    // Start the distribution process
-    distributePeople(parsedAdults, parsedChildren, parsedTeams);
+    // Calculate max price (max adults in each team)
+    let maxDistributions = distributePeopleIntoTeams(parsedAdults, parsedChildren, parsedTeams);
+    for (let i = 0; i < maxDistributions.length; i++) {
+      const [adultsInTeam, childrenInTeam] = maxDistributions[i];
+      const maxPriceForTeam = calculateTeamPrice(adultsInTeam, childrenInTeam);
+      totalMaxPrice += maxPriceForTeam;
+      maxPriceBreakdown.push(`Team ${i + 1}: Adults = ${adultsInTeam}, Children = ${childrenInTeam}, Price = ${maxPriceForTeam} €`);
+    }
 
     return {
-      minPrice,
-      maxPrice,
-      minPriceDistribution,
-      maxPriceDistribution
+      minPrice: totalMinPrice,
+      maxPrice: totalMaxPrice,
+      minPriceBreakdown,
+      maxPriceBreakdown,
     };
   };
 
   // Get the distributions
-  const { minPrice, maxPrice, minPriceDistribution, maxPriceDistribution } = generatePossibleDistributions();
+  const { minPrice, maxPrice, minPriceBreakdown, maxPriceBreakdown } = generatePossibleDistributions();
 
   return (
     <div className="container">
@@ -182,30 +188,36 @@ const App = () => {
         </div>
 
         <div className="result">
-          <h3>Total Price: {minPrice} € (Min) {parsedTeams > 1 && ` / ${maxPrice} € (Max)`}</h3>
+          <h3>Total Price: {minPrice} € (Min) / {maxPrice} € (Max)</h3>
         </div>
 
-        <div>
-          <h4>Price Breakdown:</h4>
+        <button onClick={() => setShowBreakdown(!showBreakdown)} style={{ marginTop: '10px' }}>
+          {showBreakdown ? 'Hide Breakdown' : 'Show Breakdown'}
+        </button>
+
+        {showBreakdown && (
           <div>
-            <strong>Min Price Breakdown:</strong>
-            <ul>
-              {minPriceDistribution && minPriceDistribution.map((line, index) => (
-                <li key={index}>{line}</li>
-              ))}
-            </ul>
-          </div>
-          {parsedTeams > 1 && (
+            <h4>Price Breakdown:</h4>
             <div>
-              <strong>Max Price Breakdown:</strong>
+              <strong>Min Price Breakdown:</strong>
               <ul>
-                {maxPriceDistribution && maxPriceDistribution.map((line, index) => (
+                {minPriceBreakdown && minPriceBreakdown.map((line, index) => (
                   <li key={index}>{line}</li>
                 ))}
               </ul>
             </div>
-          )}
-        </div>
+            {parsedTeams > 1 && (
+              <div>
+                <strong>Max Price Breakdown:</strong>
+                <ul>
+                  {maxPriceBreakdown && maxPriceBreakdown.map((line, index) => (
+                    <li key={index}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
 
         <button
           onClick={() => {
