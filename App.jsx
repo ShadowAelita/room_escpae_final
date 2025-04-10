@@ -12,6 +12,13 @@ const App = () => {
   const parsedChildren = parseInt(children) || 0;
   const parsedTeams = Math.max(parseInt(teams) || 1, 1);
 
+  // Function to split people into teams
+  const splitIntoTeams = (total, teams) => {
+    const base = Math.floor(total / teams);
+    const remainder = total % teams;
+    return Array.from({ length: teams }, (_, i) => base + (i < remainder ? 1 : 0));
+  };
+
   // Helper function to calculate the price for a team
   const calculateTeamPrice = (adults, children) => {
     let teamPrice = 0;
@@ -36,20 +43,61 @@ const App = () => {
     return teamPrice;
   };
 
-  // Function to split people into teams
-  const splitIntoTeams = (total, teams) => {
-    const base = Math.floor(total / teams);
-    const remainder = total % teams;
-    return Array.from({ length: teams }, (_, i) => base + (i < remainder ? 1 : 0));
+  // Function to calculate the minimum price
+  const calculateMinPrice = () => {
+    // Split adults and children into teams for minimum price
+    const adultsPerTeam = splitIntoTeams(parsedAdults, parsedTeams);
+    const childrenPerTeam = splitIntoTeams(parsedChildren, parsedTeams);
+
+    let totalMinPrice = 0;
+    adultsPerTeam.forEach((adultCount, i) => {
+      const childCount = childrenPerTeam[i];
+      let teamPrice = calculateTeamPrice(adultCount, childCount);
+      
+      // Make sure every team has at least 3 people, adjust if necessary
+      if (adultCount + childCount < 3) {
+        const deficit = 3 - (adultCount + childCount);
+        // Try to balance the teams by adding more adults or children
+        if (adultCount < childCount) {
+          teamPrice = calculateTeamPrice(adultCount + deficit, childCount); // add more adults
+        } else {
+          teamPrice = calculateTeamPrice(adultCount, childCount + deficit); // add more children
+        }
+      }
+      totalMinPrice += teamPrice;
+    });
+
+    return totalMinPrice;
   };
 
-  // Split adults and children into teams
-  const adultsPerTeam = splitIntoTeams(parsedAdults, parsedTeams);
-  const childrenPerTeam = splitIntoTeams(parsedChildren, parsedTeams);
+  // Function to calculate the maximum price
+  const calculateMaxPrice = () => {
+    // Split adults and children into teams for maximum price
+    const adultsPerTeam = splitIntoTeams(parsedAdults, parsedTeams);
+    const childrenPerTeam = splitIntoTeams(parsedChildren, parsedTeams);
 
-  const totalPrice = adultsPerTeam.reduce((sum, adultCount, i) => {
-    return sum + calculateTeamPrice(adultCount, childrenPerTeam[i]);
-  }, 0);
+    let totalMaxPrice = 0;
+    adultsPerTeam.forEach((adultCount, i) => {
+      const childCount = childrenPerTeam[i];
+      let teamPrice = calculateTeamPrice(adultCount, childCount);
+      
+      // Ensure that at least one team gets charged the minimum possible amount (under 40€)
+      if (adultCount + childCount >= 3) {
+        if (adultCount < childCount) {
+          teamPrice = calculateTeamPrice(adultCount, childCount);
+        } else {
+          teamPrice = calculateTeamPrice(adultCount, childCount);
+        }
+      }
+      totalMaxPrice += teamPrice;
+    });
+
+    return totalMaxPrice;
+  };
+
+  // Calculate min and max price for the breakdown
+  const minPrice = calculateMinPrice();
+  const maxPrice = calculateMaxPrice();
 
   return (
     <div className="container">
@@ -126,21 +174,16 @@ const App = () => {
         </div>
 
         <div className="result">
-          <h3>Total Price: {totalPrice} €</h3>
+          <h3>Total Price: {minPrice} € / {maxPrice} €</h3>
         </div>
 
         {showBreakdown && (
           <div className="breakdown">
-            <h4>Team Breakdown:</h4>
-            {adultsPerTeam.map((adultCount, i) => {
-              const childCount = childrenPerTeam[i];
-              const price = calculateTeamPrice(adultCount, childCount);
-              return (
-                <div key={i}>
-                  <strong>Team {i + 1}:</strong> {adultCount} Adults, {childCount} Children → {price} €
-                </div>
-              );
-            })}
+            <h4>Price Breakdown:</h4>
+            <h5>Min Price Breakdown:</h5>
+            <p>{minPrice} €</p>
+            <h5>Max Price Breakdown:</h5>
+            <p>{maxPrice} €</p>
           </div>
         )}
 
