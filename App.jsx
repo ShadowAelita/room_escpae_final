@@ -53,9 +53,12 @@ const App = () => {
 
   // Simplified Edge Case Warning logic
   const edgeCaseWarning = parsedTeams >= 2 &&
-                          (parsedAdults + parsedChildren) >= 7 &&
-                          parsedAdults >= 1 && parsedChildren >= 1 &&
-                          calculateTeamPrice(0, parsedChildren) > 40;
+  (parsedAdults + parsedChildren) >= 7 &&
+  parsedAdults >= 1 &&
+  parsedChildren >= 1 &&
+  // Check if the cheapest team with only children is below the 40€ minimum
+  calculateTeamPrice(0, parsedChildren) < 40;
+
 
   return (
     <div className="container">
