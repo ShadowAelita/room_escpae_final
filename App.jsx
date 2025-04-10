@@ -51,13 +51,16 @@ const App = () => {
     return sum + calculateTeamPrice(adultCount, childrenPerTeam[i]);
   }, 0);
 
-  // Simplified Edge Case Warning logic
-  const edgeCaseWarning = parsedTeams >= 2 &&
-  (parsedAdults + parsedChildren) >= 7 &&
-  parsedAdults >= 1 &&
-  parsedChildren >= 1 &&
-  // Check if the cheapest team with only children is below the 40€ minimum
-  calculateTeamPrice(0, parsedChildren) < 40;
+ const edgeCaseWarning =
+  parsedTeams > 1 &&
+  (parsedAdults + parsedChildren >= 7) &&
+  (parsedAdults > 0 && parsedChildren > 0) &&
+  (adultsPerTeam.some((adultsInTeam, i) => {
+    const childrenInTeam = childrenPerTeam[i];
+    const teamPrice = calculateTeamPrice(adultsInTeam, childrenInTeam);
+    return teamPrice < 40;
+  }));
+
 
 
   return (
