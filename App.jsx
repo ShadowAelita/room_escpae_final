@@ -23,8 +23,9 @@ const App = () => {
 
   const calculateTeamPrice = (adults, children) => {
     let teamPrice = 0;
+    const totalPeople = adults + children;
 
-    if (adults + children <= 3) {
+    if (totalPeople <= 3) {
       teamPrice += adults * 20;
     } else {
       teamPrice += adults * 15;
@@ -48,16 +49,47 @@ const App = () => {
     return sum + calculateTeamPrice(adultCount, childrenPerTeam[i]);
   }, 0);
 
-  // Edge case warning logic
-  const edgeCaseWarning = parsedTeams > 1 &&
-    adultsPerTeam.some(adults =< adults <= 4) &&
-    childrenPerTeam.some(children =< children <= 4);
+  // ----- Accurate Edge Case Detection -----
+  const generateSplits = (total, teams) => {
+    if (teams === 1) return [[total]];
+    const results = [];
+    for (let i = 0; i <= total; i++) {
+      const subSplits = generateSplits(total - i, teams - 1);
+      subSplits.forEach(sub => results.push([i, ...sub]));
+    }
+    return results;
+  };
+
+  const getAllDistributions = (adults, children, teams) => {
+    const adultSplits = generateSplits(adults, teams);
+    const childSplits = generateSplits(children, teams);
+    const distributions = [];
+
+    adultSplits.forEach(ad => {
+      childSplits.forEach(ch => {
+        distributions.push(ad.map((a, i) => ({ adults: a, children: ch[i] })));
+      });
+    });
+
+    return distributions;
+  };
+
+  const uniquePrices = new Set();
+  if (parsedTeams > 1 && (parsedAdults + parsedChildren) > 0) {
+    const allConfigs = getAllDistributions(parsedAdults, parsedChildren, parsedTeams);
+    allConfigs.forEach(config => {
+      const price = config.reduce((sum, team) => sum + calculateTeamPrice(team.adults, team.children), 0);
+      uniquePrices.add(price);
+    });
+  }
+
+  const edgeCaseWarning = uniquePrices.size > 1;
 
   return (
     <div className="container">
       <h1>Escape Room Price Calculator</h1>
 
-      <p className="disclaimer">
+      <p style={{ color: 'red', fontWeight: 'bold' }}>
         Der Rechner kann Fehler machen, bei mehreren Teams auf Teamaufteilung achten!
       </p>
 
@@ -132,8 +164,8 @@ const App = () => {
         </div>
 
         {edgeCaseWarning && (
-          <div className="warning">
-            ⚠️ Hinweis: Teamaufteilung variiert Teampreis. Die Verteilung von Erwachsenen und Kindern kann sich auf den Preis auswirken.
+          <div style={{ color: 'orange', fontWeight: 'bold', marginTop: '10px' }}>
+            <p>⚠️ Warning: Teamaufteilung variiert Teampreis. Verschiedene Aufteilungen können unterschiedliche Preise ergeben.</p>
           </div>
         )}
 
