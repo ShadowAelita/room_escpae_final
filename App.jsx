@@ -59,6 +59,7 @@ const App = () => {
     adultsPerTeam.some((adultsInTeam, i) => {
       const childrenInTeam = childrenPerTeam[i];
       const teamPrice = calculateTeamPrice(adultsInTeam, childrenInTeam);
+      console.log(`Team ${i + 1}: Adults = ${adultsInTeam}, Children = ${childrenInTeam}, Price = ${teamPrice}`); // Debugging log
       return teamPrice < 40;
     });
 
