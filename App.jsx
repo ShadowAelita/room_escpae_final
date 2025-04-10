@@ -19,14 +19,15 @@ const App = () => {
     return Array.from({ length: teams }, (_, i) => base + (i < remainder ? 1 : 0));
   };
 
-  const adultsPerTeam = splitIntoTeams(parsedAdults, parsedTeams);
-  const childrenPerTeam = splitIntoTeams(parsedChildren, parsedTeams);
+  let adultsPerTeam = splitIntoTeams(parsedAdults, parsedTeams);
+  let childrenPerTeam = splitIntoTeams(parsedChildren, parsedTeams);
 
-  // Ensure all children are in one team, and all adults in another if that's the goal.
+  // Manually split adults and children into separate teams if there are exactly two teams
   if (parsedTeams === 2) {
-    // If there are exactly two teams, move all children to one team, all adults to the other
-    adultsPerTeam[0] = parsedAdults;
-    childrenPerTeam[1] = parsedChildren;
+    // All adults in the first team
+    adultsPerTeam = [parsedAdults, 0];
+    // All children in the second team
+    childrenPerTeam = [0, parsedChildren];
   }
 
   // Calculate the price for each team
