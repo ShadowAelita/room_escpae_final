@@ -51,40 +51,11 @@ const App = () => {
     return sum + calculateTeamPrice(adultCount, childrenPerTeam[i]);
   }, 0);
 
-  // Check if the price changes due to team composition
-  const checkEdgeCaseWarning = () => {
-    if (parsedTeams > 1) {
-      let warningTriggered = false;
-
-      // Check all teams
-      for (let i = 0; i < parsedTeams; i++) {
-        const adultCountInTeam = adultsPerTeam[i];
-        const childrenCountInTeam = childrenPerTeam[i];
-
-        let teamPrice = 0;
-
-        if (adultCountInTeam + childrenCountInTeam <= 3) {
-          teamPrice += adultCountInTeam * 20;
-        } else {
-          teamPrice += adultCountInTeam * 15;
-        }
-
-        teamPrice += childrenCountInTeam * 9;
-        if (teamPrice < 40) teamPrice = 40;
-
-        // Check if the team price would be different if the distribution was different
-        if (teamPrice !== calculateTeamPrice(adultCountInTeam, childrenCountInTeam)) {
-          warningTriggered = true;
-          break;
-        }
-      }
-
-      return warningTriggered;
-    }
-    return false;
-  };
-
-  const edgeCaseWarning = checkEdgeCaseWarning();
+  // Simplified Edge Case Warning logic
+  const edgeCaseWarning = parsedTeams >= 2 &&
+                          (parsedAdults + parsedChildren) >= 7 &&
+                          parsedAdults >= 1 && parsedChildren >= 1 &&
+                          calculateTeamPrice(0, parsedChildren) < 40;
 
   return (
     <div className="container">
