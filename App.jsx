@@ -82,10 +82,10 @@ const App = () => {
       maxPrice += calculateTeamPrice(maxAdultsPerTeam[i], maxChildrenPerTeam[i]);
     }
 
-    return { minPrice, maxPrice };
+    return { minPrice, maxPrice, minAdultsPerTeam, minChildrenPerTeam, maxAdultsPerTeam, maxChildrenPerTeam };
   };
 
-  const { minPrice, maxPrice } = calculateMinMaxPrice();
+  const { minPrice, maxPrice, minAdultsPerTeam, minChildrenPerTeam, maxAdultsPerTeam, maxChildrenPerTeam } = calculateMinMaxPrice();
 
   return (
     <div className="container">
@@ -169,8 +169,8 @@ const App = () => {
           <div className="breakdown">
             <h4>Price Breakdown:</h4>
             <h5>Min Price Breakdown:</h5>
-            {adultsPerTeam.map((adultCount, i) => {
-              const childCount = childrenPerTeam[i];
+            {minAdultsPerTeam.map((adultCount, i) => {
+              const childCount = minChildrenPerTeam[i];
               const price = calculateTeamPrice(adultCount, childCount);
               return (
                 <div key={i}>
