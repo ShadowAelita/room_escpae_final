@@ -12,14 +12,15 @@ const App = () => {
   const parsedChildren = parseInt(children) || 0;
   const parsedTeams = Math.max(parseInt(teams) || 1, 1);
 
-  // Split people into teams
   const splitIntoTeams = (total, teams) => {
     const base = Math.floor(total / teams);
     const remainder = total % teams;
     return Array.from({ length: teams }, (_, i) => base + (i < remainder ? 1 : 0));
   };
 
-  // Calculate the price for each team
+  const adultsPerTeam = splitIntoTeams(parsedAdults, parsedTeams);
+  const childrenPerTeam = splitIntoTeams(parsedChildren, parsedTeams);
+
   const calculateTeamPrice = (adults, children) => {
     let teamPrice = 0;
 
@@ -34,63 +35,18 @@ const App = () => {
 
     if (parsedAdults + parsedChildren >= 5) {
       if (kpOption === "1hour") {
-        teamPrice += adults * 5 + children * 4; // 1 hour KP
+        teamPrice += adults * 5 + children * 4;
       } else if (kpOption === "2hours") {
-        teamPrice += adults * 10 + children * 8; // 2 hours KP
+        teamPrice += adults * 10 + children * 8;
       }
     }
 
     return teamPrice;
   };
 
-  // Calculate min and max price for the teams
-  const calculateMinMaxPrice = () => {
-    const minBreakdown = [];
-    const maxBreakdown = [];
-
-    // Distribute adults and children to teams
-    const adultsPerTeam = splitIntoTeams(parsedAdults, parsedTeams);
-    const childrenPerTeam = splitIntoTeams(parsedChildren, parsedTeams);
-
-    // For min price, distribute people as evenly as possible, no team below 40€
-    let minPrice = 0;
-    adultsPerTeam.forEach((adultCount, i) => {
-      const childCount = childrenPerTeam[i];
-      let teamPrice = calculateTeamPrice(adultCount, childCount);
-      minPrice += teamPrice;
-      minBreakdown.push({
-        adults: adultCount,
-        children: childCount,
-        price: teamPrice
-      });
-    });
-
-    // For max price, create teams with higher prices by separating children and adults
-    let maxPrice = 0;
-    const maxAdultsPerTeam = splitIntoTeams(parsedAdults, parsedTeams);
-    const maxChildrenPerTeam = splitIntoTeams(parsedChildren, parsedTeams);
-
-    maxAdultsPerTeam.forEach((adultCount, i) => {
-      const childCount = maxChildrenPerTeam[i];
-      let teamPrice = calculateTeamPrice(adultCount, childCount);
-      maxPrice += teamPrice;
-      maxBreakdown.push({
-        adults: adultCount,
-        children: childCount,
-        price: teamPrice
-      });
-    });
-
-    // Return both min and max prices and the breakdowns
-    return {
-      minPrice,
-      maxPrice,
-      minBreakdown,
-      maxBreakdown
-    };
-  };
-
-  const { minPrice, maxPrice, minBreakdown, maxBreakdown } = calculateMinMaxPrice();
+  const totalPrice = adultsPerTeam.reduce((sum, adultCount, i) => {
+    return sum + calculateTeamPrice(adultCount, childrenPerTeam[i]);
+  }, 0);
 
   return (
     <div className="container">
@@ -167,33 +123,27 @@ const App = () => {
         </div>
 
         <div className="result">
-          <h3>Total Price: {minPrice} €</h3>
+          <h3>Total Price: {totalPrice} €</h3>
         </div>
-
-        {showBreakdown && (
-          <div className="breakdown">
-            <h4>Price Breakdown:</h4>
-            <h5>Min Price Breakdown:</h5>
-            {minBreakdown.map((team, i) => (
-              <div key={i}>
-                <strong>Team {i + 1}:</strong> {team.adults} Adults, {team.children} Children → {team.price} €
-              </div>
-            ))}
-            <h5>Total Min Price: {minPrice} €</h5>
-
-            <h5>Max Price Breakdown:</h5>
-            {maxBreakdown.map((team, i) => (
-              <div key={i}>
-                <strong>Team {i + 1}:</strong> {team.adults} Adults, {team.children} Children → {team.price} €
-              </div>
-            ))}
-            <h5>Total Max Price: {maxPrice} €</h5>
-          </div>
-        )}
 
         <button onClick={() => setShowBreakdown(!showBreakdown)} style={{ marginTop: '10px' }}>
           {showBreakdown ? 'Hide Breakdown' : 'Show Breakdown'}
         </button>
+
+        {showBreakdown && (
+          <div className="breakdown">
+            <h4>Team Breakdown:</h4>
+            {adultsPerTeam.map((adultCount, i) => {
+              const childCount = childrenPerTeam[i];
+              const price = calculateTeamPrice(adultCount, childCount);
+              return (
+                <div key={i}>
+                  <strong>Team {i + 1}:</strong> {adultCount} Adults, {childCount} Children → {price} €
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         <button
           onClick={() => {
