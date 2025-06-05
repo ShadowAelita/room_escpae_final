@@ -37,31 +37,20 @@ function App() {
   };
 
   // Generate all valid splits with min 2 people per team
-  // adultsLeft, childrenLeft = remaining adults/children to assign
-  // teamNum = current team index (0-based)
-  // currentSplit = array of {a, c} assigned per team so far
-  // results = array of all valid splits
   const generateSplits = (adultsLeft, childrenLeft, teamNum, currentSplit, results) => {
     if (teamNum === teams) {
-      // All teams assigned, check if all adults and children are assigned
       if (adultsLeft === 0 && childrenLeft === 0) {
         results.push([...currentSplit]);
       }
       return;
     }
 
-    // For current team, try all combinations of adults and children such that:
-    // - sum >= 2 (min team size)
-    // - adultsLeft >= a
-    // - childrenLeft >= c
-    // Also, max total per team <= remaining players (just logical limit)
     const maxAdults = adultsLeft;
     const maxChildren = childrenLeft;
 
     for (let a = 0; a <= maxAdults; a++) {
       for (let c = 0; c <= maxChildren; c++) {
         if (a + c >= 2) {
-          // Assign this split and recurse for next team
           currentSplit[teamNum] = { adults: a, children: c };
           generateSplits(adultsLeft - a, childrenLeft - c, teamNum + 1, currentSplit, results);
         }
@@ -69,7 +58,6 @@ function App() {
     }
   };
 
-  // Get all splits and calculate prices, then find min and max total price
   const calculateBreakdown = () => {
     if (teams === 0) return { minSplit: null, maxSplit: null };
 
@@ -80,7 +68,6 @@ function App() {
       return { minSplit: null, maxSplit: null };
     }
 
-    // Map splits to total prices
     const pricedSplits = results.map((split) => {
       let total = 0;
       split.forEach(({ adults, children }) => {
@@ -89,7 +76,6 @@ function App() {
       return { split, total };
     });
 
-    // Find min and max total price splits
     pricedSplits.sort((a, b) => a.total - b.total);
     const minSplit = pricedSplits[0];
     const maxSplit = pricedSplits[pricedSplits.length - 1];
@@ -135,16 +121,27 @@ function App() {
           />
         </label>
       </div>
+
+      {/* KP Hours selector buttons */}
       <div>
-        <label>
-          KP Hours:{" "}
-          <input
-            type="number"
-            min="0"
-            value={kpHours}
-            onChange={(e) => setKpHours(Number(e.target.value))}
-          />
-        </label>
+        <label>KP Hours: </label>
+        {[0, 1, 2].map((hour) => (
+          <button
+            key={hour}
+            onClick={() => setKpHours(hour)}
+            style={{
+              margin: "0 5px",
+              padding: "5px 10px",
+              backgroundColor: kpHours === hour ? "#4CAF50" : "#e7e7e7",
+              color: kpHours === hour ? "white" : "black",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }}
+          >
+            {hour}
+          </button>
+        ))}
       </div>
 
       <hr />
