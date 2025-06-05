@@ -1,93 +1,12 @@
 import React, { useState } from "react";
-import "./index.css"; // import the CSS for styling
+import "./index.css";
 
 function App() {
-  const [adults, setAdults] = useState(0);
-  const [children, setChildren] = useState(0);
-  const [teams, setTeams] = useState(1);
-  const [kpHours, setKpHours] = useState(0);
-  const [showBreakdown, setShowBreakdown] = useState(false);
-
-  // Pricing rules
-  const basePricePerTeam = 40;
-  const childPrice = 9;
-  const adultPrice = 15;
-  const adultPriceSmallGroup = 20; // if total players in team <= 3
-  const kpPricePerHourAdult = 5;
-  const kpPricePerHourChild = 4;
-
-  // Calculate price for one team
-  const calcTeamPrice = (a, c, kp) => {
-    const totalPlayers = a + c;
-    if (totalPlayers === 0) return 0;
-    let priceAdults = 0;
-    let priceChildren = 0;
-
-    if (totalPlayers <= 3) {
-      priceAdults = a * adultPriceSmallGroup;
-    } else {
-      priceAdults = a * adultPrice;
-    }
-    priceChildren = c * childPrice;
-
-    // KP add-ons
-    priceAdults += a * kp * kpPricePerHourAdult;
-    priceChildren += c * kp * kpPricePerHourChild;
-
-    const total = priceAdults + priceChildren;
-    return total < basePricePerTeam ? basePricePerTeam : total;
-  };
-
-  // Generate all valid splits with min 2 people per team
-  const generateSplits = (adultsLeft, childrenLeft, teamNum, currentSplit, results) => {
-    if (teamNum === teams) {
-      if (adultsLeft === 0 && childrenLeft === 0) {
-        results.push([...currentSplit]);
-      }
-      return;
-    }
-
-    const maxAdults = adultsLeft;
-    const maxChildren = childrenLeft;
-
-    for (let a = 0; a <= maxAdults; a++) {
-      for (let c = 0; c <= maxChildren; c++) {
-        if (a + c >= 2) {
-          currentSplit[teamNum] = { adults: a, children: c };
-          generateSplits(adultsLeft - a, childrenLeft - c, teamNum + 1, currentSplit, results);
-        }
-      }
-    }
-  };
-
-  const calculateBreakdown = () => {
-    if (teams === 0) return { minSplit: null, maxSplit: null };
-
-    const results = [];
-    generateSplits(adults, children, 0, new Array(teams), results);
-
-    if (results.length === 0) {
-      return { minSplit: null, maxSplit: null };
-    }
-
-    const pricedSplits = results.map((split) => {
-      let total = 0;
-      split.forEach(({ adults, children }) => {
-        total += calcTeamPrice(adults, children, kpHours);
-      });
-      return { split, total };
-    });
-
-    pricedSplits.sort((a, b) => a.total - b.total);
-    const minSplit = pricedSplits[0];
-    const maxSplit = pricedSplits[pricedSplits.length - 1];
-
-    return { minSplit, maxSplit };
-  };
+  // ... your existing state and functions unchanged ...
 
   const { minSplit, maxSplit } = calculateBreakdown();
 
-  // Calculate even split price (rough split adults & children per team)
+  // Calculate even split price (same as before)
   const evenAdults = Math.floor(adults / teams);
   const extraAdults = adults % teams;
   const evenChildren = Math.floor(children / teams);
@@ -105,12 +24,23 @@ function App() {
     0
   );
 
-  // Input auto-select handler
   const handleFocus = (e) => e.target.select();
+
+  // Check if min and max totals differ (show warning if yes)
+  const priceVaries = minSplit && maxSplit && minSplit.total !== maxSplit.total;
 
   return (
     <div className="app-container">
       <h2>Escape Room Price Calculator</h2>
+
+      {/* Warning if price varies */}
+      {priceVaries && (
+        <div className="warning-message">
+          Team Price varies with different combinations
+        </div>
+      )}
+
+      {/* Inputs */}
       <div className="input-group">
         <label>
           Adults:{" "}
@@ -163,19 +93,17 @@ function App() {
 
       <hr />
 
-      {!showBreakdown && (
-        <>
-          <h3>Even Split Price</h3>
-          {evenSplitTeams.map((team, i) => (
-            <p key={"even" + i}>
-              Team {i + 1}: {team.adults} Adults, {team.children} Children →{" "}
-              {calcTeamPrice(team.adults, team.children, kpHours).toFixed(2)}€
-            </p>
-          ))}
-          <strong>Total: {evenTotal.toFixed(2)}€</strong>
-        </>
-      )}
+      {/* Always show Even Split Price */}
+      <h3>Even Split Price</h3>
+      {evenSplitTeams.map((team, i) => (
+        <p key={"even" + i}>
+          Team {i + 1}: {team.adults} Adults, {team.children} Children →{" "}
+          {calcTeamPrice(team.adults, team.children, kpHours).toFixed(2)}€
+        </p>
+      ))}
+      <strong>Total: {evenTotal.toFixed(2)}€</strong>
 
+      {/* Toggle to show min/max breakdown */}
       <div className="toggle-breakdown">
         <label>
           <input
