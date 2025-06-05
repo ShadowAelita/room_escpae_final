@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import "./index.css"; // import the CSS for styling
 
 function App() {
   const [adults, setAdults] = useState(0);
   const [children, setChildren] = useState(0);
   const [teams, setTeams] = useState(1);
   const [kpHours, setKpHours] = useState(0);
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
   // Pricing rules
   const basePricePerTeam = 40;
@@ -85,10 +87,31 @@ function App() {
 
   const { minSplit, maxSplit } = calculateBreakdown();
 
+  // Calculate even split price (rough split adults & children per team)
+  const evenAdults = Math.floor(adults / teams);
+  const extraAdults = adults % teams;
+  const evenChildren = Math.floor(children / teams);
+  const extraChildren = children % teams;
+
+  const evenSplitTeams = [];
+  for (let i = 0; i < teams; i++) {
+    evenSplitTeams.push({
+      adults: evenAdults + (i < extraAdults ? 1 : 0),
+      children: evenChildren + (i < extraChildren ? 1 : 0),
+    });
+  }
+  const evenTotal = evenSplitTeams.reduce(
+    (sum, team) => sum + calcTeamPrice(team.adults, team.children, kpHours),
+    0
+  );
+
+  // Input auto-select handler
+  const handleFocus = (e) => e.target.select();
+
   return (
-    <div style={{ padding: 20 }}>
+    <div className="app-container">
       <h2>Escape Room Price Calculator</h2>
-      <div>
+      <div className="input-group">
         <label>
           Adults:{" "}
           <input
@@ -96,10 +119,11 @@ function App() {
             min="0"
             value={adults}
             onChange={(e) => setAdults(Number(e.target.value))}
+            onFocus={handleFocus}
           />
         </label>
       </div>
-      <div>
+      <div className="input-group">
         <label>
           Children:{" "}
           <input
@@ -107,10 +131,11 @@ function App() {
             min="0"
             value={children}
             onChange={(e) => setChildren(Number(e.target.value))}
+            onFocus={handleFocus}
           />
         </label>
       </div>
-      <div>
+      <div className="input-group">
         <label>
           Teams:{" "}
           <input
@@ -118,26 +143,18 @@ function App() {
             min="1"
             value={teams}
             onChange={(e) => setTeams(Number(e.target.value))}
+            onFocus={handleFocus}
           />
         </label>
       </div>
 
-      {/* KP Hours selector buttons */}
-      <div>
+      <div className="input-group kp-hours">
         <label>KP Hours: </label>
         {[0, 1, 2].map((hour) => (
           <button
             key={hour}
             onClick={() => setKpHours(hour)}
-            style={{
-              margin: "0 5px",
-              padding: "5px 10px",
-              backgroundColor: kpHours === hour ? "#4CAF50" : "#e7e7e7",
-              color: kpHours === hour ? "white" : "black",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
+            className={kpHours === hour ? "btn-selected" : ""}
           >
             {hour}
           </button>
@@ -146,9 +163,33 @@ function App() {
 
       <hr />
 
-      {!minSplit && <p>No valid splits found with minimum 2 players per team.</p>}
+      {!showBreakdown && (
+        <>
+          <h3>Even Split Price</h3>
+          {evenSplitTeams.map((team, i) => (
+            <p key={"even" + i}>
+              Team {i + 1}: {team.adults} Adults, {team.children} Children →{" "}
+              {calcTeamPrice(team.adults, team.children, kpHours).toFixed(2)}€
+            </p>
+          ))}
+          <strong>Total: {evenTotal.toFixed(2)}€</strong>
+        </>
+      )}
 
-      {minSplit && (
+      <div className="toggle-breakdown">
+        <label>
+          <input
+            type="checkbox"
+            checked={showBreakdown}
+            onChange={() => setShowBreakdown(!showBreakdown)}
+          />{" "}
+          Show Minimum and Maximum Price Breakdown
+        </label>
+      </div>
+
+      {showBreakdown && !minSplit && <p>No valid splits found with minimum 2 players per team.</p>}
+
+      {showBreakdown && minSplit && (
         <>
           <h3>Minimum Price Breakdown</h3>
           {minSplit.split.map((team, i) => (
@@ -161,7 +202,7 @@ function App() {
         </>
       )}
 
-      {maxSplit && maxSplit !== minSplit && (
+      {showBreakdown && maxSplit && maxSplit !== minSplit && (
         <>
           <h3>Maximum Price Breakdown</h3>
           {maxSplit.split.map((team, i) => (
