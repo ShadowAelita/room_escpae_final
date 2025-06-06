@@ -37,21 +37,6 @@ function App() {
     setTeamCombinations(updated);
   };
 
-  const initializeTeams = (numTeams) => {
-    const newTeams = Array.from({ length: numTeams }, () => ({ adults: 0, children: 0 }));
-    setTeamCombinations(newTeams);
-  };
-
-  const handleTeamChange = (val) => {
-    const t = Number(val);
-    setTeams(t);
-    initializeTeams(t);
-  };
-
-  useEffect(() => {
-    initializeTeams(teams);
-  }, []);
-
   const evenAdults = Math.floor(adults / teams);
   const extraAdults = adults % teams;
   const evenChildren = Math.floor(children / teams);
@@ -70,6 +55,13 @@ function App() {
     0
   );
 
+  const handleTeamChange = (val) => {
+    const t = Number(val);
+    setTeams(t);
+    const newTeams = Array.from({ length: t }, (_, i) => evenSplitTeams[i] || { adults: 0, children: 0 });
+    setTeamCombinations(newTeams);
+  };
+
   const totalManualAdults = teamCombinations.reduce((sum, t) => sum + t.adults, 0);
   const totalManualChildren = teamCombinations.reduce((sum, t) => sum + t.children, 0);
   const manualMismatch = totalManualAdults !== adults || totalManualChildren !== children;
@@ -80,7 +72,7 @@ function App() {
 
       <div className="input-group">
         <label>
-          Adults: 
+          Adults:
           <input
             type="number"
             min="0"
@@ -92,7 +84,7 @@ function App() {
       </div>
       <div className="input-group">
         <label>
-          Children: 
+          Children:
           <input
             type="number"
             min="0"
@@ -104,7 +96,7 @@ function App() {
       </div>
       <div className="input-group">
         <label>
-          Teams: 
+          Teams:
           <input
             type="number"
             min="1"
