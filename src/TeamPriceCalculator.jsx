@@ -70,6 +70,10 @@ function App() {
     0
   );
 
+  const totalManualAdults = teamCombinations.reduce((sum, t) => sum + t.adults, 0);
+  const totalManualChildren = teamCombinations.reduce((sum, t) => sum + t.children, 0);
+  const manualMismatch = totalManualAdults !== adults || totalManualChildren !== children;
+
   return (
     <div className="app-container">
       <h2>Escape Room Price Calculator</h2>
@@ -138,6 +142,11 @@ function App() {
 
       <div>
         <h3>Manual Team Assignment</h3>
+        {manualMismatch && (
+          <div className="warning-message">
+            ⚠️ Mismatch in total adults or children between manual input and overall numbers.
+          </div>
+        )}
         {teamCombinations.map((team, index) => (
           <div key={index} className="input-group">
             <label>Team {index + 1} - Adults: </label>
