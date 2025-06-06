@@ -52,7 +52,6 @@ function App() {
     initializeTeams(teams);
   }, []);
 
-  // Calculate even split price (same as before)
   const evenAdults = Math.floor(adults / teams);
   const extraAdults = adults % teams;
   const evenChildren = Math.floor(children / teams);
@@ -65,6 +64,7 @@ function App() {
       children: evenChildren + (i < extraChildren ? 1 : 0),
     });
   }
+
   const evenTotal = evenSplitTeams.reduce(
     (sum, team) => sum + calcTeamPrice(team.adults, team.children, kpHours),
     0
@@ -138,42 +138,45 @@ function App() {
       ))}
       <strong>Total: {evenTotal.toFixed(2)}€</strong>
 
-      <hr />
-
-      <div>
-        <h3>Manual Team Assignment</h3>
-        {manualMismatch && (
-          <div className="warning-message">
-            ⚠️ Mismatch in total adults or children between manual input and overall numbers.
+      {teams > 1 && (
+        <>
+          <hr />
+          <div>
+            <h3>Manual Team Assignment</h3>
+            {manualMismatch && (
+              <div className="warning-message">
+                ⚠️ Mismatch in total adults or children between manual input and overall numbers.
+              </div>
+            )}
+            {teamCombinations.map((team, index) => (
+              <div key={index} className="input-group">
+                <label>Team {index + 1} - Adults: </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={team.adults}
+                  onChange={(e) => handleCombinationChange(index, "adults", e.target.value)}
+                  onFocus={handleFocus}
+                />
+                <label> Children: </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={team.children}
+                  onChange={(e) => handleCombinationChange(index, "children", e.target.value)}
+                  onFocus={handleFocus}
+                />
+                <span>
+                  → {calcTeamPrice(team.adults, team.children, kpHours).toFixed(2)}€
+                </span>
+              </div>
+            ))}
+            <strong>
+              Total: {teamCombinations.reduce((sum, t) => sum + calcTeamPrice(t.adults, t.children, kpHours), 0).toFixed(2)}€
+            </strong>
           </div>
-        )}
-        {teamCombinations.map((team, index) => (
-          <div key={index} className="input-group">
-            <label>Team {index + 1} - Adults: </label>
-            <input
-              type="number"
-              min="0"
-              value={team.adults}
-              onChange={(e) => handleCombinationChange(index, "adults", e.target.value)}
-              onFocus={handleFocus}
-            />
-            <label> Children: </label>
-            <input
-              type="number"
-              min="0"
-              value={team.children}
-              onChange={(e) => handleCombinationChange(index, "children", e.target.value)}
-              onFocus={handleFocus}
-            />
-            <span>
-              → {calcTeamPrice(team.adults, team.children, kpHours).toFixed(2)}€
-            </span>
-          </div>
-        ))}
-        <strong>
-          Total: {teamCombinations.reduce((sum, t) => sum + calcTeamPrice(t.adults, t.children, kpHours), 0).toFixed(2)}€
-        </strong>
-      </div>
+        </>
+      )}
     </div>
   );
 }
