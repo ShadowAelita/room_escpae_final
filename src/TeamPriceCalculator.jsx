@@ -62,6 +62,12 @@ function App() {
     setTeamCombinations(newTeams);
   };
 
+  useEffect(() => {
+    const newTeams = Array.from({ length: teams }, (_, i) => evenSplitTeams[i] || { adults: 0, children: 0 });
+    setTeamCombinations(newTeams);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adults, children, teams]);
+
   const totalManualAdults = teamCombinations.reduce((sum, t) => sum + t.adults, 0);
   const totalManualChildren = teamCombinations.reduce((sum, t) => sum + t.children, 0);
   const manualMismatch = totalManualAdults !== adults || totalManualChildren !== children;
