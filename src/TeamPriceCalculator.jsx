@@ -6,125 +6,55 @@ function App() {
   const [children, setChildren] = useState(0);
   const [teams, setTeams] = useState(1);
   const [kpHours, setKpHours] = useState(0);
-  const [showBreakdown, setShowBreakdown] = useState(false);
+  const [teamCombinations, setTeamCombinations] = useState([]);
 
-  // Pricing rules
   const basePricePerTeam = 40;
   const childPrice = 9;
   const adultPrice = 15;
-  const adultPriceSmallGroup = 20; // if total players in team <= 3
+  const adultPriceSmallGroup = 20;
   const kpPricePerHourAdult = 5;
   const kpPricePerHourChild = 4;
 
-  // Calculate price for one team
   const calcTeamPrice = (a, c, kp) => {
     const totalPlayers = a + c;
     if (totalPlayers === 0) return 0;
-    let priceAdults = 0;
-    let priceChildren = 0;
-
-    if (totalPlayers <= 3) {
-      priceAdults = a * adultPriceSmallGroup;
-    } else {
-      priceAdults = a * adultPrice;
-    }
-    priceChildren = c * childPrice;
-
-    // KP add-ons
+    let priceAdults = totalPlayers <= 3 ? a * adultPriceSmallGroup : a * adultPrice;
+    let priceChildren = c * childPrice;
     priceAdults += a * kp * kpPricePerHourAdult;
     priceChildren += c * kp * kpPricePerHourChild;
-
     const total = priceAdults + priceChildren;
     return total < basePricePerTeam ? basePricePerTeam : total;
   };
 
-  // Generate all valid splits with min 2 people per team
-  const generateSplits = (adultsLeft, childrenLeft, teamNum, currentSplit, results) => {
-    if (teamNum === teams) {
-      if (adultsLeft === 0 && childrenLeft === 0) {
-        results.push([...currentSplit]);
-      }
-      return;
-    }
-
-    const maxAdults = adultsLeft;
-    const maxChildren = childrenLeft;
-
-    for (let a = 0; a <= maxAdults; a++) {
-      for (let c = 0; c <= maxChildren; c++) {
-        if (a + c >= 2) {
-          currentSplit[teamNum] = { adults: a, children: c };
-          generateSplits(adultsLeft - a, childrenLeft - c, teamNum + 1, currentSplit, results);
-        }
-      }
-    }
-  };
-
-  // Calculate breakdown for min and max total prices
-  const calculateBreakdown = () => {
-    if (teams === 0) return { minSplit: null, maxSplit: null };
-
-    const results = [];
-    generateSplits(adults, children, 0, new Array(teams), results);
-
-    if (results.length === 0) {
-      return { minSplit: null, maxSplit: null };
-    }
-
-    const pricedSplits = results.map((split) => {
-      let total = 0;
-      split.forEach(({ adults, children }) => {
-        total += calcTeamPrice(adults, children, kpHours);
-      });
-      return { split, total };
-    });
-
-    pricedSplits.sort((a, b) => a.total - b.total);
-    const minSplit = pricedSplits[0];
-    const maxSplit = pricedSplits[pricedSplits.length - 1];
-
-    return { minSplit, maxSplit };
-  };
-
-  const { minSplit, maxSplit } = calculateBreakdown();
-
-  // Even split price calculation
-  const evenAdults = Math.floor(adults / teams);
-  const extraAdults = adults % teams;
-  const evenChildren = Math.floor(children / teams);
-  const extraChildren = children % teams;
-
-  const evenSplitTeams = [];
-  for (let i = 0; i < teams; i++) {
-    evenSplitTeams.push({
-      adults: evenAdults + (i < extraAdults ? 1 : 0),
-      children: evenChildren + (i < extraChildren ? 1 : 0),
-    });
-  }
-  const evenTotal = evenSplitTeams.reduce(
-    (sum, team) => sum + calcTeamPrice(team.adults, team.children, kpHours),
-    0
-  );
-
-  // Autoselect input on focus
   const handleFocus = (e) => e.target.select();
 
-  // Check if price varies
-  const priceVaries = minSplit && maxSplit && minSplit.total !== maxSplit.total;
+  const handleCombinationChange = (index, field, value) => {
+    const updated = [...teamCombinations];
+    updated[index] = {
+      ...updated[index],
+      [field]: Number(value),
+    };
+    setTeamCombinations(updated);
+  };
+
+  const initializeTeams = (numTeams) => {
+    const newTeams = Array.from({ length: numTeams }, () => ({ adults: 0, children: 0 }));
+    setTeamCombinations(newTeams);
+  };
+
+  const handleTeamChange = (val) => {
+    const t = Number(val);
+    setTeams(t);
+    initializeTeams(t);
+  };
 
   return (
     <div className="app-container">
       <h2>Escape Room Price Calculator</h2>
 
-      {priceVaries && (
-        <div className="warning-message">
-          Team Price varies with different combinations
-        </div>
-      )}
-
       <div className="input-group">
         <label>
-          Adults:{" "}
+          Adults: 
           <input
             type="number"
             min="0"
@@ -134,10 +64,9 @@ function App() {
           />
         </label>
       </div>
-
       <div className="input-group">
         <label>
-          Children:{" "}
+          Children: 
           <input
             type="number"
             min="0"
@@ -147,15 +76,14 @@ function App() {
           />
         </label>
       </div>
-
       <div className="input-group">
         <label>
-          Teams:{" "}
+          Teams: 
           <input
             type="number"
             min="1"
             value={teams}
-            onChange={(e) => setTeams(Number(e.target.value))}
+            onChange={(e) => handleTeamChange(e.target.value)}
             onFocus={handleFocus}
           />
         </label>
@@ -176,52 +104,36 @@ function App() {
 
       <hr />
 
-      <h3>Even Split Price</h3>
-      {evenSplitTeams.map((team, i) => (
-        <p key={"even" + i}>
-          Team {i + 1}: {team.adults} Adults, {team.children} Children →{" "}
-          {calcTeamPrice(team.adults, team.children, kpHours).toFixed(2)}€
-        </p>
-      ))}
-      <strong>Total: {evenTotal.toFixed(2)}€</strong>
-
-      <div className="toggle-breakdown">
-        <label>
-          <input
-            type="checkbox"
-            checked={showBreakdown}
-            onChange={() => setShowBreakdown(!showBreakdown)}
-          />{" "}
-          Show Minimum and Maximum Price Breakdown
-        </label>
-      </div>
-
-      {showBreakdown && !minSplit && <p>No valid splits found with minimum 2 players per team.</p>}
-
-      {showBreakdown && minSplit && (
-        <>
-          <h3>Minimum Price Breakdown</h3>
-          {minSplit.split.map((team, i) => (
-            <p key={"min" + i}>
-              Team {i + 1}: {team.adults} Adults, {team.children} Children →{" "}
-              {calcTeamPrice(team.adults, team.children, kpHours).toFixed(2)}€
-            </p>
+      {teams > 1 && (
+        <div>
+          <h3>Manual Team Assignment</h3>
+          {teamCombinations.map((team, index) => (
+            <div key={index} className="input-group">
+              <label>Team {index + 1} - Adults: </label>
+              <input
+                type="number"
+                min="0"
+                value={team.adults}
+                onChange={(e) => handleCombinationChange(index, "adults", e.target.value)}
+                onFocus={handleFocus}
+              />
+              <label> Children: </label>
+              <input
+                type="number"
+                min="0"
+                value={team.children}
+                onChange={(e) => handleCombinationChange(index, "children", e.target.value)}
+                onFocus={handleFocus}
+              />
+              <span>
+                → {calcTeamPrice(team.adults, team.children, kpHours).toFixed(2)}€
+              </span>
+            </div>
           ))}
-          <strong>Total: {minSplit.total.toFixed(2)}€</strong>
-        </>
-      )}
-
-      {showBreakdown && maxSplit && maxSplit !== minSplit && (
-        <>
-          <h3>Maximum Price Breakdown</h3>
-          {maxSplit.split.map((team, i) => (
-            <p key={"max" + i}>
-              Team {i + 1}: {team.adults} Adults, {team.children} Children →{" "}
-              {calcTeamPrice(team.adults, team.children, kpHours).toFixed(2)}€
-            </p>
-          ))}
-          <strong>Total: {maxSplit.total.toFixed(2)}€</strong>
-        </>
+          <strong>
+            Total: {teamCombinations.reduce((sum, t) => sum + calcTeamPrice(t.adults, t.children, kpHours), 0).toFixed(2)}€
+          </strong>
+        </div>
       )}
     </div>
   );
